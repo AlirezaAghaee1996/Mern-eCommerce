@@ -26,11 +26,11 @@ export const auth = catchAsync(async (req, res, next) => {
         message: "code sent",
       });
     } else {
-      return res.status(200).json({
-        success: true,
+      return res.status(404).json({
+        success: false,
         newAccount: user?._id ? false : true,
         password: false,
-        message: "check phone number and try again",
+        message:resultSms.message,
       });
     }
   }
@@ -47,7 +47,8 @@ export const checkOtp = catchAsync(async (req, res, next) => {
     return next(new HandleERROR("invalid code", 400));
   }
   let user;
-  if (newAccount) {
+  
+  if (newAccount=='true') {
     user = await User.create({ phoneNumber });
   } else {
     user = await User.findOne({ phoneNumber });
@@ -68,7 +69,7 @@ export const checkOtp = catchAsync(async (req, res, next) => {
       },
       token,
     },
-    message: newAccount ? "register successfully" : "login successfully",
+    message: newAccount=='true' ? "register successfully" : "login successfully",
   });
 });
 export const checkPassword = catchAsync(async (req, res, next) => {
@@ -123,7 +124,10 @@ export const forgetPassword = catchAsync(async (req, res, next) => {
     { phoneNumber },
     { password: hashPassword }
   );
+  if(!user?._id){
+    return next(new HandleERROR("user not found", 400));
 
+  }
   const token = jwt.sign(
     { id: user._id, role: user.role, phoneNumber: user.phoneNumber },
     process.env.JWT_SECRET
@@ -140,7 +144,6 @@ export const forgetPassword = catchAsync(async (req, res, next) => {
       },
       token,
     },
-    message: newAccount ? "register successfully" : "login successfully",
   });
 });
 export const resendCode = catchAsync(async (req, res, next) => {

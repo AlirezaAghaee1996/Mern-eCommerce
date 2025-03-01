@@ -9,7 +9,9 @@ const userSchema=new mongoose.Schema({
     phoneNumber:{
         type:String,
         required:[true,'phone number is required'],
-        match:[/^(\+98|0)?9\d{9}$/,'phone is not valid']
+        match:[/^(\+98|0)?9\d{9}$/,'phone is not valid'],
+        unique:[true,'phone number is exist']
+
     },
     password:{
         type:String,
