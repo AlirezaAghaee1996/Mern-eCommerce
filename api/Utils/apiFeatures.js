@@ -35,22 +35,16 @@ class ApiFeatures {
     this.query = this.query.skip(skip).limit(limit);
     return this;
   }
-  search(){
-    if (this.queryString.search) {
-        const search = this.queryString.search
-        const searchField = Object.keys(search)[0];
-        const searchValue = search[searchField];
-        const regex = new RegExp(searchValue, 'i');
-        this.query = this.query.find({ [searchField]: regex });
-    }else{
-        this.query=this.query.select('-__v')
-    }
-    return this
-}
   populate() {
     if (this.queryString.populate) {
       const populateBy = this.queryString.populate.split(",").join(" ");
       this.query = this.query.populate(populateBy);
+    }
+    return this;
+  }
+  nestedPopulate(x) {
+    if (x) {
+      this.query = this.query.populate(x);
     }
     return this;
   }
