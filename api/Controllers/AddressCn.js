@@ -47,7 +47,6 @@ export const update = catchAsync(async(req, res, next) => {
 
     })
 });
-
 export const remove = catchAsync(async(req, res, next) => {
     const {id}=req.params
     const address=await Address.findById(id)
