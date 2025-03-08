@@ -3,6 +3,8 @@ import Category from "../Models/CategoryMd.js";
 import ApiFeatures from "../Utils/apiFeatures.js";
 import catchAsync from "../Utils/catchAsync.js";
 import HandleERROR from "../Utils/handleError.js";
+import fs from "fs";
+import { __dirname } from "../app.js";
 export const create = catchAsync(async(req, res, next) => {
     const categories=await Category.create(req.body)
     return res.status(201).json({
@@ -17,7 +19,7 @@ export const getAll = catchAsync(async (req, res, next) => {
     if(req?.userId && req?.role=='admin'){
         queryString=req.query
     }else{
-        queryString={...req.query,filters:{...req.query.filter,isActive:true}}
+        queryString={...req.query,filters:{...req.query.filters,isActive:true}}
     }
   const features = new ApiFeatures(Category, queryString)
     .filter()
@@ -65,7 +67,10 @@ export const remove = catchAsync(async (req, res, next) => {
       )
     );
   }
-  await Category.findByIdAndDelete(id);
+  const category=await Category.findByIdAndDelete(id);
+  if (category.image) {
+    fs.unlinkSync(`${__dirname}/Public/${category.image}`);
+  }
   return res.status(200).json({
     success: true,
     message:'category deleted successfully'

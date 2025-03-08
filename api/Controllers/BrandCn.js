@@ -3,6 +3,8 @@ import Brand from "../Models/BrandMd.js";
 import ApiFeatures from "../Utils/apiFeatures.js";
 import catchAsync from "../Utils/catchAsync.js";
 import HandleERROR from "../Utils/handleError.js";
+import fs from "fs";
+import { __dirname } from "../app.js";
 export const create = catchAsync(async(req, res, next) => {
     const brands=await Brand.create(req.body)
     return res.status(201).json({
@@ -59,7 +61,10 @@ export const remove = catchAsync(async (req, res, next) => {
       )
     );
   }
-  await Brand.findByIdAndDelete(id);
+  const brand=await Brand.findByIdAndDelete(id);
+  if (brand.image) {
+    fs.unlinkSync(`${__dirname}/Public/${brand.image}`);
+  }
   return res.status(200).json({
     success: true,
     message:'brand deleted successfully'
