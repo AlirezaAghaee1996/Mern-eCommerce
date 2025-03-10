@@ -157,3 +157,39 @@ export const resendCode = catchAsync(async (req, res, next) => {
     message: resultSms.success ? "code sent" : resultSms?.message,
   });
 });
+
+export const adminLogin=catchAsync(async(req,res,next)=>{
+  const { phoneNumber = null, password = null } = req.body;
+
+  if (!phoneNumber || !password) {
+    return next(new HandleERROR("phone and password is required", 400));
+  }
+  const user = await User.findOne({ phoneNumber });
+  if (!user) {
+    return next(new HandleERROR("user not found", 400));
+  }
+  if (user.role !='admin') {
+    return next(new HandleERROR("you do not have permission", 401));
+  }
+  const validPassword = bcryptjs.compareSync(password, user?.password);
+  if (!validPassword) {
+    return next(new HandleERROR("password incorrect", 401));
+  }
+  const token = jwt.sign(
+    { id: user._id, role: user.role, phoneNumber: user.phoneNumber },
+    process.env.JWT_SECRET
+  );
+  return res.status(200).json({
+    success: true,
+    data: {
+      user: {
+        phoneNumber,
+        id: user._id,
+        role: user.role,
+        fullName: user?.fullname,
+      },
+      token,
+    },
+    message: "login successfully",
+  });
+})
