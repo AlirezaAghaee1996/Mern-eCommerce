@@ -7,6 +7,13 @@ import GetAllCategory from "../Pages/Categories/GetAll";
 import Categories from "../Pages/Categories";
 import CreateCategory from "../Pages/Categories/Create";
 import UpdateCategory from "../Pages/Categories/Update";
+import Brands from "../Pages/Brands";
+import GetAllBrands from "../Pages/Brands/GetAll";
+import CreateBrand from "../Pages/Brands/Create";
+import UpdateBrand from "../Pages/Brands/Update";
+import Users from "../Pages/User";
+import GetAllUsers from "../Pages/User/GetAll";
+import UpdateUser from "../Pages/User/Update";
 const checkAuth = () => {
   const state = store.getState();
   const token = state?.auth?.token;
@@ -19,7 +26,7 @@ const checkAuth = () => {
 const checkLogin = () => {
   const state = store.getState();
   const token = state?.auth?.token;
-  
+
   if (token) {
     return redirect("/");
   }
@@ -56,6 +63,38 @@ const router = createBrowserRouter([
           {
             path: "update",
             element: <UpdateCategory />,
+          },
+        ],
+      },
+      {
+        path: "/brand",
+        element: <Brands />,
+        children: [
+          { 
+            index:true, 
+            element: <GetAllBrands /> 
+          },
+          {
+            path: "create",
+            element: <CreateBrand />,
+          },
+          {
+            path: "update",
+            element: <UpdateBrand />,
+          },
+        ],
+      },
+      {
+        path: "/user",
+        element: <Users />,
+        children: [
+          { 
+            index:true, 
+            element: <GetAllUsers /> 
+          },
+          {
+            path: "update",
+            element: <UpdateUser />,
           },
         ],
       },
