@@ -4,17 +4,14 @@ import catchAsync from "../Utils/catchAsync.js";
 import HandleERROR from "../Utils/handleError.js";
 
 export const getAll = catchAsync(async(req, res, next) => {
-  const features = new ApiFeatures(User, req.query)
+    const features = new ApiFeatures(User,req.query,req?.role)
     .filter()
     .sort()
     .limitFields()
     .paginate()
-    .populate();
-    const users=await features.query
-    return res.status(200).json({
-        success:true,
-        data:users
-    })
+    .populate()
+    const data=await features.execute()
+    return res.status(200).json(data);
 });
 export const getOne = catchAsync(async(req, res, next) => {
     const {id}=req.params

@@ -12,6 +12,9 @@ import addressRouter from "./Routes/Address.js";
 import categoryRouter from "./Routes/Category.js";
 import brandRouter from "./Routes/Brand.js";
 import sliderRouter from "./Routes/Slider.js";
+import variantRouter from "./Routes/Variant.js";
+import productRouter from "./Routes/Products.js";
+import productVariantRouter from "./Routes/ProductVariant.js";
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
@@ -25,6 +28,9 @@ app.use('/api/address',isLogin,addressRouter)
 app.use('/api/category',categoryRouter)
 app.use('/api/brand',brandRouter)
 app.use('/api/slider',sliderRouter)
+app.use('/api/variant',variantRouter)
+app.use('/api/product',productRouter)
+app.use('/api/productVariant',productVariantRouter)
 app.use('/api/upload',uploadRouter)
 
 app.use("*", (req, res, next) => {

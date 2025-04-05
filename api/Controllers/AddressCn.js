@@ -4,21 +4,15 @@ import catchAsync from "../Utils/catchAsync.js";
 import HandleERROR from "../Utils/handleError.js";
 
 export const getAll = catchAsync(async(req, res, next) => {
-    let queryString={...req.query}
-    if(req.role!='admin'){
-        queryString={...queryString,filters:[...queryString.filters,{userId:req.userId}]}
-    }
-  const features = new ApiFeatures(Address,queryString)
+  const features = new ApiFeatures(Address,req.query,req?.role)
     .filter()
+    .manualFilters(req.role!='admin'?{userId:req.userId}:'')
     .sort()
     .limitFields()
     .paginate()
-    .nestedPopulate({path:'userId',select:'username fullname phoneNumber'})
-    const addresses=await features.query
-    return res.status(200).json({
-        success:true,
-        data:addresses
-    })
+    .populate({path:'userId',select:'username fullname phoneNumber'})
+    const data=await features.execute()
+    return res.status(200).json(data)
 });
 export const getOne = catchAsync(async(req, res, next) => {
     const {id}=req.params

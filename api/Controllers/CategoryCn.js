@@ -15,25 +15,16 @@ export const create = catchAsync(async(req, res, next) => {
 });
 
 export const getAll = catchAsync(async (req, res, next) => {
-    let queryString;
-    if(req?.userId && req?.role=='admin'){
-        queryString=req.query
-    }else{
-        queryString={...req.query,filters:{...req.query.filters,isActive:true}}
-    }
-  const features = new ApiFeatures(Category, queryString)
+  
+    const features = new ApiFeatures(Category,req.query,req?.role)
     .filter()
+    .manualFilters(req?.role=='admin' ?{isActive:true}:'' )
     .sort()
     .limitFields()
     .paginate()
-    .populate();
-  const categories = await features.query;
-  const count = await Category.countDocuments(queryString?.filters);
-  return res.status(200).json({
-    success: true,
-    data: categories,
-    count,
-  });
+    .populate()
+    const data=await features.execute()
+    return res.status(200).json(data);
 });
 export const getOne = catchAsync(async (req, res, next) => {
   const { id } = req.params;

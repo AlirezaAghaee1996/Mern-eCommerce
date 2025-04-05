@@ -106,12 +106,14 @@ export const checkPassword = catchAsync(async (req, res, next) => {
 });
 export const forgetPassword = catchAsync(async (req, res, next) => {
   const { phoneNumber = null, code = null, password = null } = req.body;
+
   if (!phoneNumber || !code || !password) {
     return next(
       new HandleERROR("phone and code and password is required", 400)
     );
   }
   const verifyResult = await verifyCode(phoneNumber, code);
+  
   if (!verifyResult.success) {
     return next(new HandleERROR("invalid code", 400));
   }
