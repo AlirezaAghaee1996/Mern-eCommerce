@@ -6,7 +6,7 @@ import HandleERROR from "../Utils/handleError.js";
 export const getAll = catchAsync(async(req, res, next) => {
   const features = new ApiFeatures(Address,req.query,req?.role)
     .filter()
-    .manualFilters(req.role!='admin'?{userId:req.userId}:'')
+    .addManualFilters(req.role!='admin'?{userId:req.userId}:'')
     .sort()
     .limitFields()
     .paginate()

@@ -30,7 +30,7 @@ app.use('/api/brand',brandRouter)
 app.use('/api/slider',sliderRouter)
 app.use('/api/variant',variantRouter)
 app.use('/api/product',productRouter)
-app.use('/api/productVariant',productVariantRouter)
+app.use('/api/product-variant',productVariantRouter)
 app.use('/api/upload',uploadRouter)
 
 app.use("*", (req, res, next) => {

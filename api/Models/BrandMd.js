@@ -7,7 +7,6 @@ const brandSchema=new mongoose.Schema({
     image:{
         type:String,
     }
-    
 },{timestamps:true})
 
 const Brand=mongoose.model('Brand',brandSchema)

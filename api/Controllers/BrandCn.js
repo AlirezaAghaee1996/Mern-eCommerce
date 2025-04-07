@@ -15,7 +15,7 @@ export const create = catchAsync(async(req, res, next) => {
 });
 
 export const getAll = catchAsync(async (req, res, next) => {
-  const features = new ApiFeatures(Brand,req.query,req?.role)
+  const features = new ApiFeatures(Brand,req.query)
   .filter()
   .sort()
   .limitFields()

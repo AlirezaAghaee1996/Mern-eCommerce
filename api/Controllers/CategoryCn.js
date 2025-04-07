@@ -3,6 +3,7 @@ import Category from "../Models/CategoryMd.js";
 import ApiFeatures from "../Utils/apiFeatures.js";
 import catchAsync from "../Utils/catchAsync.js";
 import HandleERROR from "../Utils/handleError.js";
+import jwt from 'jsonwebtoken'
 import fs from "fs";
 import { __dirname } from "../app.js";
 export const create = catchAsync(async(req, res, next) => {
@@ -15,14 +16,17 @@ export const create = catchAsync(async(req, res, next) => {
 });
 
 export const getAll = catchAsync(async (req, res, next) => {
-  
-    const features = new ApiFeatures(Category,req.query,req?.role)
+  let role=null
+  if(req?.headers?.authorization){
+    role=jwt?.verify(token,process.env.JWT_SECRET).role
+  }
+    const features = new ApiFeatures(Category,req.query,role)
     .filter()
-    .manualFilters(req?.role=='admin' ?{isActive:true}:'' )
+    .addManualFilters(req?.role!='admin' ?{isActive:true}:'' )
     .sort()
     .limitFields()
     .paginate()
-    .populate()
+    .populate('parentCategory')
     const data=await features.execute()
     return res.status(200).json(data);
 });
@@ -45,15 +49,18 @@ export const update = catchAsync(async (req, res, next) => {
   return res.status(200).json({
     success: true,
     data: category,
+    message:'Category update successfully'
+
   });
 });
 export const remove = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const products = await Product.findOne({ categoryId: id });
-  if (products) {
+  const categories=await Category.findOne({parentCategory:id})
+  if (products || categories) {
     return next(
       new HandleERROR(
-        "you can't delete this Category, please first delete all Product of this categories",
+        "you can't delete this Category, please first delete all Product or Child Category of this categories",
         400
       )
     );

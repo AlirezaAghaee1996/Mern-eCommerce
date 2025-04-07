@@ -17,7 +17,8 @@ export const uploadCn = catchAsync(async (req, res, next) => {
 
 export const deleteFile = catchAsync(async (req, res, next) => {
   const { fileName } = req.body;
-  const deleteFileName = fileName.split("/").at(-1);
+  console.log(fileName)
+  const deleteFileName = fileName?.split("/")?.at(-1);
 
   if (deleteFileName == "*") {
     return next(new HandleError("File not found", 400));

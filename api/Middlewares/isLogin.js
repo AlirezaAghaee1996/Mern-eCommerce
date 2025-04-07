@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 export const isLogin=async (req,res,next) => {
     try {
         const token=req.headers?.authorization.split(' ')[1]
-        const {role,id}=jwt.verify(token,process.env.SECRET_JWT)
+        const {role,id}=jwt.verify(token,process.env.JWT_SECRET)
         req.userId=id
         req.role=role
         return next()

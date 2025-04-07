@@ -8,14 +8,14 @@ export default class ApiFeatures {
     this.userRole = userRole;
     this.pipeline = [];
     this.countPipeline = [];
-    this.manualFilters = {};
+    this.addManualFilter = {};
     this.#initialSanitization();
   }
 
   // ---------- Core Methods ----------
   filter() {
     const queryFilters = this.#parseQueryFilters();
-    const mergedFilters = { ...queryFilters, ...this.manualFilters };
+    const mergedFilters = { ...queryFilters, ...this.addManualFilter };
     const safeFilters = this.#applySecurityFilters(mergedFilters);
 
     if (Object.keys(safeFilters).length > 0) {
@@ -70,27 +70,41 @@ export default class ApiFeatures {
     const queryFields = this.query.populate?.split(",") || [];
     const manualFields = fields.split(",").filter(Boolean);
     const allFields = [...new Set([...queryFields, ...manualFields])];
-
+  
     allFields.forEach(field => {
       const { collection, isArray } = this.#getCollectionInfo(field.trim());
-      this.pipeline.push(
-        {
-          $lookup: {
-            from: collection,
-            localField: field,
-            foreignField: "_id",
-            as: field
+      this.pipeline.push({
+        $lookup: {
+          from: collection,
+          localField: field,
+          foreignField: "_id",
+          as: field
+        }
+      });
+  
+      // Fix the $unwind stage
+      if (isArray) {
+        this.pipeline.push({
+          $unwind: {
+            path: `$${field}`,
+            preserveNullAndEmptyArrays: true
           }
-        },
-        { $unwind: isArray ? { path: `$${field}`, preserveNullAndEmptyArrays: true } : "" }
-      );
+        });
+      } else {
+        this.pipeline.push({
+          $unwind: {
+            path: `$${field}`,
+            preserveNullAndEmptyArrays: true
+          }
+        });
+      }
     });
     return this;
   }
 
-  addManualFilter(filters) {
+  addManualFilters(filters) {
     if(filters){
-      this.manualFilters = { ...this.manualFilters, ...filters };
+      this.addManualFilter = { ...this.addManualFilter, ...filters };
     }
     return this;
   }
@@ -100,7 +114,7 @@ export default class ApiFeatures {
       const [count, data] = await Promise.all([
         this.Model.aggregate([...this.countPipeline, { $count: "total" }]),
         this.Model.aggregate(this.pipeline)
-          .allowDiskUse(options.allowDiskUse || false)
+          .allowDiskUse(options?.allowDiskUse || false)
           .readConcern("majority")
       ]);
 
@@ -119,7 +133,7 @@ export default class ApiFeatures {
     // Remove dangerous operators
     ["$where", "$accumulator", "$function"].forEach(op => {
       delete this.query[op];
-      delete this.manualFilters[op];
+      delete this.addManualFilter[op];
     });
 
     // Validate numeric fields
@@ -139,21 +153,19 @@ export default class ApiFeatures {
         .replace(/\b(gte|gt|lte|lt|in|nin|eq|ne|regex|exists|size)\b/g, "$$$&")
     );
   }
-
   #applySecurityFilters(filters) {
     let result = { ...filters };
-
-    // Remove forbidden fields
+  
     securityConfig.forbiddenFields.forEach(field => delete result[field]);
-
-    // Role-based filtering
-    if (this.userRole !== "admin") {
+  
+    if (this.userRole !== "admin" && this.Model.schema.path("isActive")) {
       result.isActive = true;
       result = this.#sanitizeNestedObjects(result);
     }
-
+  
     return result;
   }
+  
 
   #sanitizeNestedObjects(obj) {
     return Object.entries(obj).reduce((acc, [key, value]) => {
