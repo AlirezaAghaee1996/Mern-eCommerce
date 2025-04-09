@@ -9,6 +9,6 @@ const variantSchema=new mongoose.Schema({
         type:String,
         required:[true,'value is required']
     }
-})
+},{timestamps:true})
 const Variant=mongoose.model('Variant',variantSchema)
 export default Variant

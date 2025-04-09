@@ -10,7 +10,7 @@ export const getAll = catchAsync(async(req, res, next) => {
     .sort()
     .limitFields()
     .paginate()
-    .populate({path:'userId',select:'username fullname phoneNumber'})
+    .populate([{path:'userId',select:'username fullname phoneNumber'}])
     const data=await features.execute()
     return res.status(200).json(data)
 });
@@ -54,7 +54,9 @@ export const remove = catchAsync(async(req, res, next) => {
     })
 });
 export const create = catchAsync(async(req, res, next) => {
-    const address=await Address.create({...req.body,userId:req.userId})
+    const {userId=null}=req.body
+    const newUserId= userId && req.role=='admin'?userId :req.userId
+    const address=await Address.create({...req.body,userId:newUserId})
  
     return res.status(201).json({
         success:true,
