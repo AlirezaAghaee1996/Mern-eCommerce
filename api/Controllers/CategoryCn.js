@@ -18,11 +18,11 @@ export const create = catchAsync(async(req, res, next) => {
 export const getAll = catchAsync(async (req, res, next) => {
   let role=null
   if(req?.headers?.authorization){
-    role=jwt?.verify(token,process.env.JWT_SECRET).role
+    role=jwt?.verify(req?.headers?.authorization.split(' ')[1],process.env.JWT_SECRET).role
   }
+
     const features = new ApiFeatures(Category,req.query,role)
     .filter()
-    .addManualFilters(req?.role!='admin' ?{isActive:true}:'' )
     .sort()
     .limitFields()
     .paginate()

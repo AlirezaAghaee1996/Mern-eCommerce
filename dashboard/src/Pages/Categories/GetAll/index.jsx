@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import fetchData from "../../../Utils/fetchData";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const GetAllCategory = () => {
   const [categories, setCategories] = useState([]);
@@ -8,25 +9,27 @@ const GetAllCategory = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const { token } = useSelector((state) => state.auth);
   const [totalCount, setTotalCount] = useState(0);
-  const navigate=useNavigate()
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchCategories = async () => {
-      try {
-        const response = await fetchData(
-          `category?page=${currentPage}&limit=${itemsPerPage}`
-        );
-        if (response.success) {
-          setCategories(response.data);
-          setTotalCount(response.count);
-        } else {
-          setError(response.message);
+      const response = await fetchData(
+        `category?page=${currentPage}&limit=${itemsPerPage}`,
+        {
+          method: "GET",
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
         }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      );
+      if (response.success) {
+        setCategories(response.data);
+        setTotalCount(response.count);
+      } else {
+        setError(response.message);
       }
+      setLoading(false);
     };
 
     fetchCategories();
@@ -58,7 +61,7 @@ const GetAllCategory = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">All Categories</h1>
-      
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -83,11 +86,17 @@ const GetAllCategory = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {categories.map((category) => (
-                <tr onClick={()=>navigate(`update/${category._id}`)} key={category._id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  onClick={() => navigate(`update/${category._id}`)}
+                  key={category._id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     {category.image && (
                       <img
-                        src={`${import.meta.env.VITE_BASE_FILE}${category.image}`}
+                        src={`${import.meta.env.VITE_BASE_FILE}${
+                          category.image
+                        }`}
                         alt={category.name}
                         className="h-12 w-12 object-cover rounded"
                       />
@@ -123,27 +132,33 @@ const GetAllCategory = () => {
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
           <div className="flex-1 flex justify-between sm:hidden">
             <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
               className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
               Previous
             </button>
             <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
               Next
             </button>
           </div>
-          
+
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
-                <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalCount)}</span> of{" "}
-                <span className="font-medium">{totalCount}</span> results
+                Showing{" "}
+                <span className="font-medium">
+                  {(currentPage - 1) * itemsPerPage + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium">
+                  {Math.min(currentPage * itemsPerPage, totalCount)}
+                </span>{" "}
+                of <span className="font-medium">{totalCount}</span> results
               </p>
               <select
                 value={itemsPerPage}
@@ -155,10 +170,10 @@ const GetAllCategory = () => {
                 <option value={50}>50 per page</option>
               </select>
             </div>
-            
+
             <div className="flex gap-2">
               <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
                 className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -168,7 +183,9 @@ const GetAllCategory = () => {
                 Page {currentPage} of {totalPages}
               </span>
               <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
                 disabled={currentPage === totalPages}
                 className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
