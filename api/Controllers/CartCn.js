@@ -1,4 +1,4 @@
-import Cart from "../Models/CartMd";
+import Cart from "../Models/CartMd.js";
 import ProductVariant from "../Models/ProductVariantMd.js";
 import catchAsync from "../Utils/catchAsync.js";
 

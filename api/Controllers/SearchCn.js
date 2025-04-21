@@ -1,5 +1,5 @@
 import Brand from "../Models/BrandMd.js";
-import Category from "../Models/CategoryMd";
+import Category from "../Models/CategoryMd.js";
 import Product from "../Models/ProductsMd.js";
 import catchAsync from "../Utils/catchAsync.js";
 export const search = catchAsync(async (req, res, next) => {
