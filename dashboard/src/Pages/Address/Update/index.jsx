@@ -26,7 +26,7 @@ const UpdateAddress = () => {
         }
 
         // Fetch users list
-        const usersResponse = await fetchData("users", {
+        const usersResponse = await fetchData("user", {
           method: "GET",
           headers: { authorization: `Bearer ${token}` },
         });
@@ -186,15 +186,15 @@ const UpdateAddress = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">User *</label>
           <select
             name="userId"
-            value={fields.userId || ""}
+            value={String(fields.userId )|| ""}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required
           >
             <option value="">Select a user</option>
             {users.map((user) => (
-              <option key={user._id} value={user._id}>
-                {user.name || user.email}
+              <option key={user._id} value={String(user._id)}>
+                {user.name || user.email || user.phoneNumber}
               </option>
             ))}
           </select>

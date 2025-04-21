@@ -1,28 +1,25 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import fetchData from "../../../Utils/fetchData";
 import useFormFields from "../../../Utils/useFormFields";
 import notify from "../../../Utils/notify";
-import { useNavigate } from "react-router-dom";
 
-const CreateProductVariant = () => {
-  // Basic fields for product variant
-  const [fields, handleChange] = useFormFields({
-    price: "",
-    discount: "0",
-    quantity: "",
-    productId: "",
-    variantId: "",
-  });
-  const { token } = useSelector((state) => state.auth);
+const UpdateProductVariant = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { token } = useSelector((state) => state.auth);
 
-  // Lists of products and variants for selection
-  const [products, setProducts] = useState([]);
-  const [variants, setVariants] = useState([]);
+  // useFormFields returns only modified fields
+  const [fields, handleChange] = useFormFields();
+  const [initialData, setInitialData] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch products and variants on mount
+  // Lists for product and variant selection
+  const [products, setProducts] = useState([]);
+  const [variants, setVariants] = useState([]);
+
+  // Fetch products and variants
   useEffect(() => {
     (async () => {
       try {
@@ -46,13 +43,40 @@ const CreateProductVariant = () => {
     })();
   }, [token]);
 
-  // Calculate price after discount on the fly
+  // Fetch variant details to edit
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await fetchData(`product-variant/${id}`, {
+          method: "GET",
+          headers: { authorization: `Bearer ${token}` },
+        });
+        if (response.success) {
+          setInitialData(response.data);
+        } else {
+          notify("Product variant not found!", "error");
+          navigate("/product-variant");
+        }
+      } catch (err) {
+        notify("Error fetching product variant details", "error");
+      }
+    })();
+  }, [id, token, navigate]);
+
+  // Function to compute final price based on changes (fields overwrite initialData when modified)
   const computePriceAfterDiscount = () => {
-    const price = Number(fields.price);
-    const discount = Number(fields.discount);
+    const price = Number(fields.price !== undefined ? fields.price : initialData?.price);
+    const discount = Number(fields.discount !== undefined ? fields.discount : initialData?.discount);
     if (!isNaN(price) && !isNaN(discount)) {
       return (price - price * (discount / 100)).toFixed(2);
     }
+    return "";
+  };
+
+  // Helper to get current field value
+  const getFieldValue = (name) => {
+    if (fields[name] !== undefined) return fields[name];
+    if (initialData && initialData[name] !== undefined) return initialData[name];
     return "";
   };
 
@@ -60,41 +84,49 @@ const CreateProductVariant = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      // You can either send the computed value or let the server calculate it.
       const payload = {
-        ...fields,
-        price: Number(fields.price),
-        discount: Number(fields.discount),
-        quantity: Number(fields.quantity),
-        // Optionally include priceAfterDiscount if you want to override the server calculation:
+        ...initialData,
+        ...fields, // only modified fields
+        // Ensure numeric conversion:
+        price: Number(getFieldValue("price")),
+        discount: Number(getFieldValue("discount")),
+        quantity: Number(getFieldValue("quantity")),
+        // Optionally update priceAfterDiscount here (or let the backend handle it)
         priceAfterDiscount: Number(computePriceAfterDiscount()),
       };
 
-      const response = await fetchData("product-variant", {
-        method: "POST",
+      const response = await fetchData(`product-variant/${id}`, {
+        method: "PATCH",
         headers: {
           authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
-
       if (response.success) {
-        notify("Product variant created successfully", "success");
+        notify("Product variant updated successfully", "success");
         navigate("/product-variant");
       } else {
         notify(response.message, "error");
       }
     } catch (err) {
-      notify("Error creating product variant", "error");
+      notify("Error updating product variant", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  if (!initialData) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Create New Product Variant</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Update Product Variant</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Price Field */}
         <div>
@@ -102,7 +134,7 @@ const CreateProductVariant = () => {
           <input
             type="number"
             name="price"
-            value={fields.price}
+            value={getFieldValue("price")}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             placeholder="Enter price"
@@ -116,7 +148,7 @@ const CreateProductVariant = () => {
           <input
             type="number"
             name="discount"
-            value={fields.discount}
+            value={getFieldValue("discount")}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             placeholder="Enter discount percentage"
@@ -131,7 +163,7 @@ const CreateProductVariant = () => {
           <input
             type="number"
             name="quantity"
-            value={fields.quantity}
+            value={getFieldValue("quantity")}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             placeholder="Enter quantity"
@@ -144,7 +176,7 @@ const CreateProductVariant = () => {
           <label className="block text-sm font-medium text-gray-700">Product *</label>
           <select
             name="productId"
-            value={fields.productId}
+            value={initialData?.productId?._id}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required
@@ -163,7 +195,7 @@ const CreateProductVariant = () => {
           <label className="block text-sm font-medium text-gray-700">Variant *</label>
           <select
             name="variantId"
-            value={fields.variantId}
+            value={initialData?.variantId?._id}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required
@@ -192,11 +224,11 @@ const CreateProductVariant = () => {
           disabled={loading}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
         >
-          {loading ? "Creating..." : "Create Product Variant"}
+          {loading ? "Updating..." : "Update Product Variant"}
         </button>
       </form>
     </div>
   );
 };
 
-export default CreateProductVariant;
+export default UpdateProductVariant;

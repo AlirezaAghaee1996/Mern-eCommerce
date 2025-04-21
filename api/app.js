@@ -16,6 +16,9 @@ import variantRouter from "./Routes/Variant.js";
 import productRouter from "./Routes/Products.js";
 import productVariantRouter from "./Routes/ProductVariant.js";
 import commentRouter from "./Routes/Comment.js";
+import discountRouter from "./Routes/DiscountCode.js";
+import cartRouter from "./Routes/Cart.js";
+import searchRouter from "./Routes/Search.js";
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
@@ -33,6 +36,9 @@ app.use('/api/variant',variantRouter)
 app.use('/api/product',productRouter)
 app.use('/api/product-variant',productVariantRouter)
 app.use('/api/comment',commentRouter)
+app.use('/api/discount',discountRouter)
+app.use('/api/cart',isLogin,cartRouter)
+app.use('/api/search',searchRouter)
 app.use('/api/upload',uploadRouter)
 
 app.use("*", (req, res, next) => {

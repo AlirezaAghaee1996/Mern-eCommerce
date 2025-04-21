@@ -26,6 +26,17 @@ import Variant from "../Pages/Variants";
 import GetAllVariant from "../Pages/Variants/GetAll";
 import CreateVariant from "../Pages/Variants/Create";
 import UpdateVariant from "../Pages/Variants/Update";
+import ProductVariant from "../Pages/ProductVariant";
+import GetAllProductVariant from "../Pages/ProductVariant/GetAll";
+import CreateProductVariant from "../Pages/ProductVariant/Create";
+import UpdateProductVariant from "../Pages/ProductVariant/Update";
+import DiscountCode from "../Pages/DiscountCode";
+import GetAllDiscountCode from "../Pages/DiscountCode/GetAll";
+import UpdateDiscountCode from "../Pages/DiscountCode/Update";
+import CreateDiscountCode from "../Pages/DiscountCode/Create";
+import Comments from "../Pages/Comments";
+import GetAllComments from "../Pages/Comments/GetAll";
+import Reply from "../Pages/Comments/Reply";
 const checkAuth = () => {
   const state = store.getState();
   const token = state?.auth?.token;
@@ -114,6 +125,20 @@ const router = createBrowserRouter([
         ],
       },
       {
+        path: "/comments",
+        element: <Comments />,
+        children: [
+          { 
+            index:true, 
+            element: <GetAllComments /> 
+          },
+          {
+            path: "reply/:id",
+            element: <Reply />,
+          },
+        ],
+      },
+      {
         path: "/product",
         element: <Product/>,
         children: [
@@ -128,6 +153,40 @@ const router = createBrowserRouter([
           {
             path: "update/:id",
             element: <UpdateProduct />,
+          },
+        ],
+      }, {
+        path: "/product-variant",
+        element: <ProductVariant/>,
+        children: [
+          { 
+            index:true, 
+            element: <GetAllProductVariant /> 
+          },
+          {
+            path: "create",
+            element: <CreateProductVariant />,
+          },
+          {
+            path: "update/:id",
+            element: <UpdateProductVariant />,
+          },
+        ],
+      },{
+        path: "/discount-code",
+        element: <DiscountCode/>,
+        children: [
+          { 
+            index:true, 
+            element: <GetAllDiscountCode /> 
+          },
+          {
+            path: "create",
+            element: <CreateDiscountCode />,
+          },
+          {
+            path: "update/:id",
+            element: <UpdateDiscountCode />,
           },
         ],
       },

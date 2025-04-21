@@ -174,7 +174,7 @@ const UpdateProduct = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
           <select
             name="categoryId"
-            value={getFieldValue("categoryId")}
+            value={initialData?.categoryId?._id}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required
@@ -191,7 +191,7 @@ const UpdateProduct = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Brand *</label>
           <select
             name="brandId"
-            value={getFieldValue("brandId")}
+            value={initialData?.brandId?._id}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required

@@ -4,6 +4,7 @@ import catchAsync from "../Utils/catchAsync.js";
 import HandleERROR from "../Utils/handleError.js";
 import { sendAuthCode, verifyCode } from "../Utils/smsHandler.js";
 import bcryptjs from "bcryptjs";
+import Cart from "../Models/CartMd.js";
 export const auth = catchAsync(async (req, res, next) => {
   const { phoneNumber = null } = req.body;
   if (!phoneNumber) {
@@ -50,6 +51,7 @@ export const checkOtp = catchAsync(async (req, res, next) => {
   
   if (newAccount=='true') {
     user = await User.create({ phoneNumber });
+    await Cart.create({userId:user._id})
   } else {
     user = await User.findOne({ phoneNumber });
   }

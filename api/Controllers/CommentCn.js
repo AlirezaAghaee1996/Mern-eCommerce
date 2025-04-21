@@ -11,7 +11,7 @@ export const create = catchAsync(async (req, res, next) => {
   });
 });
 export const getAll = catchAsync(async (req, res, next) => {
-  const features = await ApiFeatures(Comment, req.query, req.role)
+  const features = new ApiFeatures(Comment, req.query, req.role)
     .filter()
     .sort()
     .limitFields()
@@ -28,7 +28,7 @@ export const getOne = catchAsync(async (req, res, next) => {
   if(req?.headers?.authorization){
     role=jwt?.verify(req?.headers?.authorization.split(' ')[1],process.env.JWT_SECRET).role
   }
-    const features = await ApiFeatures(Comment, req.query, role)
+    const features = new ApiFeatures(Comment, req.query, role)
     .addManualFilters({productId:req.params.id})
     .filter()
     .sort()
@@ -57,4 +57,16 @@ export const remove = catchAsync(async (req, res, next) => {
         success: true,
         message: "Comment deleted successfully",
       });
+});
+export const replyComment = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const comment = await Comment.findById(id)
+  const {reply}=req.body
+  comment.reply=reply
+  const newComment=await comment.save()
+  return res.status(200).json({
+      success: true,
+      data: newComment,
+      message: "Comment Reply Successfully"
+  });
 });

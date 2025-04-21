@@ -28,7 +28,7 @@ const productVariantSchema=new mongoose.Schema({
     priceAfterDiscount:{
         type:Number
     }
-})
+},{timestamps:true})
 
 
 const ProductVariant=mongoose.model('ProductVariant',productVariantSchema)

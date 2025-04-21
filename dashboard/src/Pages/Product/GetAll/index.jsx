@@ -16,7 +16,7 @@ const GetAllProduct = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetchData(`product?page=${currentPage}&limit=${itemsPerPage}`, {
+        const response = await fetchData(`product?page=${currentPage}&limit=${itemsPerPage}&populate=categoryId,brandId`, {
           method: "GET",
           headers: { authorization: `Bearer ${token}` },
         });

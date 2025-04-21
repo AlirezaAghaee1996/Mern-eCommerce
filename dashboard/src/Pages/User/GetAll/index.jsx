@@ -9,20 +9,23 @@ const GetAllUsers = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortOption, setSortOption] = useState(""); // Example: "username" or "-username"
   const { token } = useSelector((state) => state.auth);
-
   const [totalCount, setTotalCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        // Assuming your API endpoint for users supports pagination as query params
-        const response = await fetchData(`user?page=${currentPage}&limit=${itemsPerPage}`, {
-          method: "GET",
-          headers: {
-            authorization: `Bearer ${token}`,
-          }});
+        const response = await fetchData(
+          `user?page=${currentPage}&limit=${itemsPerPage}&sort=${sortOption}`,
+          {
+            method: "GET",
+            headers: {
+              authorization: `Bearer ${token}`,
+            },
+          }
+        );
         if (response.success) {
           setUsers(response.data);
           setTotalCount(response.count);
@@ -37,13 +40,17 @@ const GetAllUsers = () => {
     };
 
     fetchUsers();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, sortOption]);
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const handleItemsPerPageChange = (e) => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
+  };
+
+  const handleSortChange = (e) => {
+    setSortOption(e.target.value);
   };
 
   if (loading) {
@@ -65,6 +72,27 @@ const GetAllUsers = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">All Users</h1>
+
+      {/* Sort & Filter Controls */}
+      <div className="mb-4 flex gap-4 items-center">
+        <label htmlFor="sort" className="text-sm font-medium text-gray-700">
+          Sort by:
+        </label>
+        <select
+          id="sort"
+          value={sortOption}
+          onChange={handleSortChange}
+          className="border rounded-md px-3 py-1 text-sm"
+        >
+          <option value="">None</option>
+          <option value="username">Username (A-Z)</option>
+          <option value="-username">Username (Z-A)</option>
+          <option value="fullname">Full Name (A-Z)</option>
+          <option value="-fullname">Full Name (Z-A)</option>
+          <option value="createdAt">Created At (Oldest)</option>
+          <option value="-createdAt">Created At (Newest)</option>
+        </select>
+      </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
@@ -104,9 +132,7 @@ const GetAllUsers = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {user.phoneNumber}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {user.role}
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">{user.role}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
@@ -118,29 +144,18 @@ const GetAllUsers = () => {
 
         {/* Pagination Controls */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="ml-3 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Next
-            </button>
-          </div>
-          
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
-                <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalCount)}</span> of{" "}
-                <span className="font-medium">{totalCount}</span> results
+                Showing{" "}
+                <span className="font-medium">
+                  {(currentPage - 1) * itemsPerPage + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium">
+                  {Math.min(currentPage * itemsPerPage, totalCount)}
+                </span>{" "}
+                of <span className="font-medium">{totalCount}</span> results
               </p>
               <select
                 value={itemsPerPage}
@@ -152,7 +167,7 @@ const GetAllUsers = () => {
                 <option value={50}>50 per page</option>
               </select>
             </div>
-            
+
             <div className="flex gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -165,7 +180,9 @@ const GetAllUsers = () => {
                 Page {currentPage} of {totalPages}
               </span>
               <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
                 disabled={currentPage === totalPages}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >

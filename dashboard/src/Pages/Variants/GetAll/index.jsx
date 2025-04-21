@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import fetchData from "../../../Utils/fetchData";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 
 const GetAllVariant = () => {
   const [variants, setVariants] = useState([]);
@@ -10,16 +11,22 @@ const GetAllVariant = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const [sort, setSort] = useState("-createdAt");
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const fetchVariants = async () => {
+      setLoading(true);
       try {
-        const response = await fetchData(`variant?page=${currentPage}&limit=${itemsPerPage}`, {
-          method: 'GET',
-          headers: { authorization: `Bearer ${token}` }
-        });
+        const response = await fetchData(
+          `variant?page=${currentPage}&limit=${itemsPerPage}&sort=${sort}`,
+          {
+            method: "GET",
+            headers: { authorization: `Bearer ${token}` },
+          }
+        );
+
         if (response.success) {
           setVariants(response.data);
           setTotalCount(response.count);
@@ -34,13 +41,25 @@ const GetAllVariant = () => {
     };
 
     fetchVariants();
-  }, [currentPage, itemsPerPage, token]);
+  }, [currentPage, itemsPerPage, sort, token]);
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const handleItemsPerPageChange = (e) => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
+  };
+
+  const handleSort = (field) => {
+    if (sort === field) setSort(`-${field}`);
+    else if (sort === `-${field}`) setSort(field);
+    else setSort(field);
+  };
+
+  const renderSortIcon = (field) => {
+    if (sort === field) return <FaSortUp className="inline ml-1" />;
+    if (sort === `-${field}`) return <FaSortDown className="inline ml-1" />;
+    return <FaSort className="inline ml-1 text-gray-400" />;
   };
 
   if (loading) {
@@ -67,15 +86,18 @@ const GetAllVariant = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Value
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created At
-                </th>
+                {["type", "value", "createdAt"].map((field) => (
+                  <th
+                    key={field}
+                    onClick={() => handleSort(field)}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+                  >
+                    <div className="flex items-center gap-1 capitalize">
+                      {field === "createdAt" ? "Created At" : field}
+                      {renderSortIcon(field)}
+                    </div>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -88,7 +110,9 @@ const GetAllVariant = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{variant.type}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{variant.value}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {variant.createdAt ? new Date(variant.createdAt).toLocaleDateString() : '-'}
+                    {variant.createdAt
+                      ? new Date(variant.createdAt).toLocaleDateString()
+                      : "-"}
                   </td>
                 </tr>
               ))}
@@ -96,7 +120,7 @@ const GetAllVariant = () => {
           </table>
         </div>
 
-        {/* Pagination Controls */}
+        {/* Pagination */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
           <div className="flex-1 flex justify-between sm:hidden">
             <button
@@ -114,7 +138,7 @@ const GetAllVariant = () => {
               Next
             </button>
           </div>
-          
+
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <p className="text-sm text-gray-700">
@@ -132,7 +156,7 @@ const GetAllVariant = () => {
                 <option value={50}>50 per page</option>
               </select>
             </div>
-            
+
             <div className="flex gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}

@@ -17,14 +17,14 @@ export const getAll = catchAsync(async (req, res, next) => {
     .sort()
     .limitFields()
     .paginate()
-    .populate('VariantId')
+    .populate()
     const data=await features.execute()
     return res.status(200).json(data);
 });
 export const getOne = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const productVariant = await ProductVariant.findById(id).populate(
-    "defaultProductVariantId categoryId brandId"
+    "productId variantId"
   );
   return res.status(200).json({
     success: true,
