@@ -17,7 +17,7 @@ const GetAllComments = () => {
     const fetchComments = async () => {
       try {
         const response = await fetchData(
-          `comment?page=${currentPage}&limit=${itemsPerPage}`, {
+          `comment?page=${currentPage}&limit=${itemsPerPage}&populate=productId,userId`, {
           method: "GET",
           headers: {
             authorization: `Bearer ${token}`,
@@ -148,10 +148,10 @@ const GetAllComments = () => {
                     {comment.content}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {comment.userId?.username || "Unknown"}
+                    {comment.userId?.username || comment.userId?.phoneNumber || "Unknown"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {comment.productId?.name || "Unknown"}
+                    {comment.productId?.title || "Unknown"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {comment.reply || "-"}
