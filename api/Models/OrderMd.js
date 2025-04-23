@@ -28,6 +28,9 @@ const orderSchema=new mongoose.Schema({
     },
     items:{
         type:Array
+    },
+    refId:{
+        type:String
     }
 },{timestamps:true})
 

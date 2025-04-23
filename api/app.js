@@ -19,27 +19,33 @@ import commentRouter from "./Routes/Comment.js";
 import discountRouter from "./Routes/DiscountCode.js";
 import cartRouter from "./Routes/Cart.js";
 import searchRouter from "./Routes/Search.js";
+import { setupSwagger } from "./Swagger/swagger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static("Public"));
-app.use('/api/auth',authRouter)
-app.use('/api/user',userRouter)
-app.use('/api/address',isLogin,addressRouter)
-app.use('/api/category',categoryRouter)
-app.use('/api/brand',brandRouter)
-app.use('/api/slider',sliderRouter)
-app.use('/api/variant',variantRouter)
-app.use('/api/product',productRouter)
-app.use('/api/product-variant',productVariantRouter)
-app.use('/api/comment',commentRouter)
-app.use('/api/discount',discountRouter)
-app.use('/api/cart',isLogin,cartRouter)
-app.use('/api/search',searchRouter)
-app.use('/api/upload',uploadRouter)
+
+// Setup Swagger documentation
+setupSwagger(app);
+
+app.use('/api/auth', authRouter);
+app.use('/api/user', userRouter);
+app.use('/api/address', isLogin, addressRouter);
+app.use('/api/category', categoryRouter);
+app.use('/api/brand', brandRouter);
+app.use('/api/slider', sliderRouter);
+app.use('/api/variant', variantRouter);
+app.use('/api/product', productRouter);
+app.use('/api/product-variant', productVariantRouter);
+app.use('/api/comment', commentRouter);
+app.use('/api/discount', discountRouter);
+app.use('/api/cart', isLogin, cartRouter);
+app.use('/api/search', searchRouter);
+app.use('/api/upload', uploadRouter);
 
 app.use("*", (req, res, next) => {
   next(new HandleERROR("Route not Found", 404));
