@@ -231,6 +231,37 @@
  *         isActive:
  *           type: boolean
  *           description: Whether the variant is active
+ * 
+ *     Rate:
+ *       type: object
+ *       required:
+ *         - productId
+ *         - rate
+ *       properties:
+ *         rate:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 5
+ *           description: Product rating value (0-5)
+ *         rateCount:
+ *           type: number
+ *           description: Number of ratings received
+ *         userIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Array of user IDs who have rated this product
+ *         productId:
+ *           type: string
+ *           description: ID of the product being rated
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: When the rating was created
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: When the rating was last updated
  */
 
 /**
@@ -1225,4 +1256,80 @@
  *     responses:
  *       200:
  *         description: Variant deleted successfully
+ */
+
+/**
+ * @swagger
+ * /api/rate:
+ *   post:
+ *     summary: Rate a product
+ *     description: |
+ *       Rate a product that the user has purchased.
+ *       User can only rate a product they have bought.
+ *       User can only rate a product once.
+ *     tags: [Rate]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - productId
+ *               - rate
+ *             properties:
+ *               productId:
+ *                 type: string
+ *                 description: ID of the product to rate
+ *                 example: "507f1f77bcf86cd799439011"
+ *               rate:
+ *                 type: number
+ *                 minimum: 0
+ *                 maximum: 5
+ *                 description: Rating value (0-5)
+ *                 example: 4.5
+ *     responses:
+ *       200:
+ *         description: Rating submitted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Rate'
+ *                 message:
+ *                   type: string
+ *                   example: "rating successfully"
+ *       400:
+ *         description: Error in rating
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "error"
+ *                 message:
+ *                   type: string
+ *                   example: "you can not rate this product"
+ *       401:
+ *         description: Unauthorized - User not logged in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "error"
+ *                 message:
+ *                   type: string
+ *                   example: "Please login to access this resource"
  */ 

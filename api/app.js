@@ -19,7 +19,7 @@ import commentRouter from "./Routes/Comment.js";
 import discountRouter from "./Routes/DiscountCode.js";
 import cartRouter from "./Routes/Cart.js";
 import searchRouter from "./Routes/Search.js";
-import { setupSwagger } from "./Swagger/swagger.js";
+import { setupSwagger } from "./swagger/swagger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);

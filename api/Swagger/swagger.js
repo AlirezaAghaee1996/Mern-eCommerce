@@ -25,7 +25,7 @@ const options = {
       },
     },
   },
-  apis: ['./swagger-docs.js'], // Path to the API docs
+  apis: ['./swagger/swagger-docs.js'], // Updated path to the API docs
 };
 
 const specs = swaggerJsdoc(options);
@@ -34,7 +34,7 @@ export const setupSwagger = (app) => {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
     explorer: true,
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: "Rokad E-commerce API Documentation"
+    customSiteTitle: "E-commerce API Documentation"
   }));
 };
 
