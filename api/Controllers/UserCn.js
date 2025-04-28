@@ -18,7 +18,7 @@ export const getOne = catchAsync(async(req, res, next) => {
     if(req.role!='admin'&& req.userId!=id){
         return next(new HandleERROR("You Don't have a permission",401))
     }
-    const user=await User.findById(id)
+    const user=await User.findById(id).select('-password -__v')
     return res.status(200).json({
         success:true,
         data:user

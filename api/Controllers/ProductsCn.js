@@ -4,6 +4,7 @@ import catchAsync from "../Utils/catchAsync.js";
 import fs from "fs";
 import { __dirname } from "../app.js";
 import ProductVariant from "../Models/ProductVariantMd.js";
+import User from "../Models/UserMd.js";
 export const create = catchAsync(async (req, res, next) => {
   const product = await Product.create(req.body);
   return res.status(201).json({
@@ -28,9 +29,20 @@ export const getOne = catchAsync(async (req, res, next) => {
   const product = await Product.findById(id).populate(
     "defaultProductVariantId categoryId brandId"
   );
+  const token=req?.headers?.authorization?.split(' ')?.at(1)
+  let favoriteProduct;
+  let boughtProduct;
+  if(token){
+    const {id:userId}=jwt.verify(token,process.env.JWT_SECRET)
+    const user=await User.findById(userId)
+    boughtProduct=user.boughtProductIds?.includes(e=>String(e)==String(product._id))
+    favoriteProduct=user.favoriteProduct?.includes(e=>String(e)==String(product._id))
+    
+  }
   return res.status(200).json({
     success: true,
-    data: product,
+    data: {product,favoriteProduct,boughtProduct},
+    
   });
 });
 export const update = catchAsync(async (req, res, next) => {
@@ -59,3 +71,22 @@ export const remove = catchAsync(async (req, res, next) => {
     message: "product deleted successfully",
   });
 });
+
+export const favoriteProduct=catchAsync(async(req,res,next)=>{
+  const {productId:id}=req.body
+  const userId=req.userId
+  const user=await User.findById(userId)
+  let add;
+  if(user.favoriteProduct.indexOf(e=>String(e)==String(id))>=0){
+    add=false
+    user.favoriteProduct=user.favoriteProduct.slice(user.favoriteProduct.indexOf(e=>String(e)==String(id)),1)
+  }else{
+    add=true
+    user.favoriteProduct.push(id)
+  }
+  await user.save()
+  return res.status(200).json({
+    success:true,data:{add}
+  })
+
+})

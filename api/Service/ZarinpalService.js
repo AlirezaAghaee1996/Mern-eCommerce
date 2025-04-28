@@ -1,4 +1,4 @@
-const ZARINPAL = {
+export const ZARINPAL = {
     CREATE: 'https://api.zarinpal.com/pg/v4/payment/request.json',
     VERIFY: 'https://api.zarinpal.com/pg/v4/payment/verify.json',
     GATEWAY: 'https://www.zarinpal.com/pg/StartPay/'
