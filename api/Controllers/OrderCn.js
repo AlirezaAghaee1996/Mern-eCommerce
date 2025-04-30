@@ -1,7 +1,7 @@
-// controllers/orderController.js
+
 import Cart from "../Models/CartMd.js";
 import Discount from "../Models/DiscountCodeMd.js";
-import Order from "../models/Order.js";
+import Order from "../Models/OrderMd.js";
 import ProductVariant from "../Models/ProductVariantMd.js";
 import {
   createPayment,
@@ -134,12 +134,11 @@ export const zarinpalCallback = catchAsync(async (req, res, next) => {
       order.refId = result.data.ref_id;
       await order.save({ session });
 
-      // اضافه کردن محصول‌های خریداری‌شده به کاربر
       const boughtProductIds = order.items.map(item => item.productId);
       if (boughtProductIds.length > 0) {
         await User.updateOne(
           { _id: userId },
-          { $addToSet: { boughtProductIds: { $each: boughtProductIds } } }, // $addToSet برای جلوگیری از اضافه شدن تکراری
+          { $addToSet: { boughtProductIds: { $each: boughtProductIds } } },
           { session }
         );
       }
@@ -149,11 +148,9 @@ export const zarinpalCallback = catchAsync(async (req, res, next) => {
       );
     }
 
-    // پرداخت ناموفق: برگشت عملیات
     order.status = "failed";
     await order.save({ session });
 
-    // ۱. برگرداندن موجودی واریانت‌ها
     const bulkOps = order.items.map(item => ({
       updateOne: {
         filter: { _id: item.productVariantId },
@@ -164,11 +161,10 @@ export const zarinpalCallback = catchAsync(async (req, res, next) => {
       await ProductVariant.bulkWrite(bulkOps, { session });
     }
 
-    // ۲. حذف userId از userIdsUsed تخفیف
     if (order.discountId) {
       await Discount.updateOne(
         { _id: order.discountId },
-        { $pull: { userIdsUsed: userId } }, // اینجا هم از req.userId استفاده کردیم
+        { $pull: { userIdsUsed: userId } }, 
         { session }
       );
     }

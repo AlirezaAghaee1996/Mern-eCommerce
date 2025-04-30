@@ -38,6 +38,10 @@ const productSchema=new mongoose.Schema({
         ref:'Brand',
         required:[true,'Brand is required']
     },
+    rateId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Rate',
+    },
     defaultProductVariantId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'ProductVariant'

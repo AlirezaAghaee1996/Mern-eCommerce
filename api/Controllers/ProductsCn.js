@@ -5,11 +5,15 @@ import fs from "fs";
 import { __dirname } from "../app.js";
 import ProductVariant from "../Models/ProductVariantMd.js";
 import User from "../Models/UserMd.js";
+import Rate from "../Models/RateMd.js";
 export const create = catchAsync(async (req, res, next) => {
   const product = await Product.create(req.body);
+  const rate=await Rate.create({productId:product._id})
+  product.rateId=rate._id
+  const newProduct=await product.save()
   return res.status(201).json({
     success: true,
-    data: product,
+    data: newProduct,
     message: "Brand create successfully",
   });
 });

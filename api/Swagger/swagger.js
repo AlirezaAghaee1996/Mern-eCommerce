@@ -32,7 +32,6 @@ const specs = swaggerJsdoc(options);
 
 export const setupSwagger = (app) => {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
-    explorer: true,
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: "E-commerce API Documentation"
   }));
