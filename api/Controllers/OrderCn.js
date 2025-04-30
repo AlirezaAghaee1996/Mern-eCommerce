@@ -177,3 +177,61 @@ export const zarinpalCallback = catchAsync(async (req, res, next) => {
 
   session.endSession();
 });
+
+
+export const changeStatus = catchAsync(async (req, res, next) => {
+  const { status = null, orderId = null } = req.body;
+  const userId = req.userId;
+
+  if (!status || !orderId) {
+    return next(new HandleERROR("status and orderId required", 400));
+  }
+
+  const session = await mongoose.startSession();
+  await session.withTransaction(async () => {
+    const order = await Order.findById(orderId).session(session);
+    if (!order) return next(new HandleERROR("Order not found", 404));
+
+    if (status === "success") {
+      order.status = "success";
+      await order.save({ session });
+
+      const boughtProductIds = order.items.map((item) => item.productId);
+      if (boughtProductIds.length > 0) {
+        await User.updateOne(
+          { _id: userId },
+          { $addToSet: { boughtProductIds: { $each: boughtProductIds } } },
+          { session }
+        );
+      }
+    } else {
+      order.status = "failed";
+      await order.save({ session });
+
+      const bulkOps = order.items.map((item) => ({
+        updateOne: {
+          filter: { _id: item.productVariantId },
+          update: { $inc: { quantity: item.quantity } },
+        },
+      }));
+      if (bulkOps.length > 0) {
+        await ProductVariant.bulkWrite(bulkOps, { session });
+      }
+
+      if (order.discountId) {
+        await Discount.updateOne(
+          { _id: order.discountId },
+          { $pull: { userIdsUsed: userId } },
+          { session }
+        );
+      }
+    }
+
+    res.status(200).json({ message: "Order status updated successfully" });
+  }).catch(err => {
+    session.endSession();
+    next(err);
+  });
+
+  session.endSession();
+});

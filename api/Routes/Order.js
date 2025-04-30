@@ -1,9 +1,11 @@
 import express from 'express';
-import { createOrder, getAll, getOrder, zarinpalCallback } from '../Controllers/OrderCn.js';
+import { changeStatus, createOrder, getAll, getOrder, zarinpalCallback } from '../Controllers/OrderCn.js';
 const orderRouter = express.Router();
 
 orderRouter.route('/').post(createOrder).get(getAll)
-orderRouter.route('/:id').get(getOrder);
 orderRouter.route('/zarinpal/callback').get(zarinpalCallback);
+orderRouter.route('/change-status').post(changeStatus);
+orderRouter.route('/:id').get(getOrder);
+
 
 export default orderRouter
