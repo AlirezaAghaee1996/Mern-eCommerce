@@ -22,6 +22,7 @@ export const createOrder = catchAsync(async (req, res, next) => {
     if (!addressId) return next(new HandleERROR("addressId is required", 400));
 
     const cart = await Cart.findOne({ userId: req.userId }).lean();
+
     if (!cart || cart.items.length === 0)
       return next(new HandleERROR("cart is empty", 400));
 
@@ -90,6 +91,7 @@ export const createOrder = catchAsync(async (req, res, next) => {
 
     return res.status(200).json({ success: true, url: `${ZARINPAL.GATEWAY}${payment.data.authority}` });
   }).catch(err => {
+    console.log(err)
     session.endSession();
     next(err);
   });
