@@ -160,7 +160,17 @@ const Layout = () => {
                   </span>
                 </Link>
               </li>
-
+              <li>
+                <Link
+                  to="/order"
+                  className="flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                >
+                  <FiShoppingCart className="flex-shrink-0" size={20} />
+                  <span className={`ml-3 ${isCollapsed ? 'opacity-0 w-0 absolute' : 'opacity-100'}`}>
+                   Orders
+                  </span>
+                </Link>
+              </li>
               
             </ul>
           </nav>

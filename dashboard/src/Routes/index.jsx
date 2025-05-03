@@ -125,6 +125,20 @@ const router = createBrowserRouter([
         ],
       },
       {
+        path: "/order",
+        element: <Order />,
+        children: [
+          { 
+            index:true, 
+            element: <GetAllOrders /> 
+          },
+          {
+            path: "get-one/:id",
+            element: <GetOneOrder />,
+          },
+        ],
+      },
+      {
         path: "/comments",
         element: <Comments />,
         children: [

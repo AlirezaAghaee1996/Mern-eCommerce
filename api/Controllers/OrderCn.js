@@ -121,19 +121,136 @@ export const createOrder = catchAsync(async (req, res, next) => {
     });
 });
 
+
 export const getOrder = catchAsync(async (req, res, next) => {
-  const order = await Order.findById(req.params.id).populate([
-    {
-      path: "items",
-      populate: { path: "productId productVariantId categoryId" },
+  const orderId = mongoose.Types.ObjectId(req.params.id);
+  const userId  = mongoose.Types.ObjectId(req.userId);
+
+  const [order] = await Order.aggregate([
+    { $match: { _id: orderId, userId } },
+
+    { 
+      $lookup: {
+        from: 'orders',            
+        localField: '_id',
+        foreignField: '_id',
+        as: 'doc'
+      }
     },
-    { path: "userId" },
-    { path: "addressId" },
+    { $unwind: '$doc' },
+    { $replaceRoot: { newRoot: '$doc' } },
+
+  
+    { $unwind: '$items' },
+
+ 
+    {
+      $lookup: {
+        from: 'products',
+        localField: 'items.ProductId',
+        foreignField: '_id',
+        as: 'items.product'
+      }
+    },
+    { $unwind: '$items.product' },
+
+    {
+      $lookup: {
+        from: 'productvariants',
+        localField: 'items.ProductVariantId',
+        foreignField: '_id',
+        as: 'items.variant'
+      }
+    },
+    { $unwind: '$items.variant' },
+
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'items.categoryId',
+        foreignField: '_id',
+        as: 'items.category'
+      }
+    },
+    { $unwind: '$items.category' },
+
+    {
+      $group: {
+        _id: '$_id',
+        totalPrice:             { $first: '$totalPrice' },
+        totalPriceAfterDiscount:{ $first: '$totalPriceAfterDiscount' },
+        discountId:             { $first: '$discountId' },
+        userId:                 { $first: '$userId' },
+        addressId:              { $first: '$addressId' },
+        status:                 { $first: '$status' },
+        authority:              { $first: '$authority' },
+        refId:                  { $first: '$refId' },
+        createdAt:              { $first: '$createdAt' },
+        updatedAt:              { $first: '$updatedAt' },
+        items: { $push: {
+          quantity:     '$items.quantity',
+          finalPrice:   '$items.finalPrice',
+          ProductId:    '$items.product._id',
+          product:      '$items.product',
+          ProductVariantId:'$items.variant._id',
+          variant:      '$items.variant',
+          categoryId:   '$items.category._id',
+          category:     '$items.category'
+        } }
+      }
+    },
+
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'user'
+      }
+    },
+    { $unwind: '$user' },
+
+    {
+      $lookup: {
+        from: 'addresses',
+        localField: 'addressId',
+        foreignField: '_id',
+        as: 'address'
+      }
+    },
+    { $unwind: '$address' },
+
+    {
+      $project: {
+        _id: 1,
+        totalPrice: 1,
+        totalPriceAfterDiscount: 1,
+        discountId: 1,
+        status: 1,
+        authority: 1,
+        refId: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        items: 1,
+        user: {
+          _id: '$user._id',
+          fullname: '$user.fullname',
+          username: '$user.username',
+          phoneNumber: '$user.phoneNumber',
+          role: '$user.role'
+        },
+        address: 1
+      }
+    }
   ]);
-  if(String(order?.userId?._id)!=String(req.userId)) return next(new HandleERROR("Unauthorized", 403));
-  if (!order) return next(new HandleERROR("Order not found", 404));
-  return res.status(200).json(order);
+
+  if (!order) {
+    return next(new HandleERROR('Order not found or unauthorized', 404));
+  }
+
+  res.status(200).json({ success: true, data: order });
 });
+
 
 export const getAll = catchAsync(async (req, res, next) => {
   const features = new ApiFeatures(Order, req.query, req.role)
