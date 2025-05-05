@@ -26,8 +26,6 @@ This is a full-stack e-commerce platform built using the MERN stack (MongoDB, Ex
 - **Real-Time Updates**: Dynamic updates using modern React features.
 
 ## Project Structure
-
-```
 .
 ├── api/                # Backend code
 │   ├── Controllers/    # API controllers
@@ -43,7 +41,7 @@ This is a full-stack e-commerce platform built using the MERN stack (MongoDB, Ex
 ├── .gitignore          # Git ignore rules
 ├── LICENSE             # License file
 └── README.md           # Project documentation
-```
+
 
 ## Installation
 
