@@ -204,10 +204,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
-      <p className="text-sm text-gray-500 mt-6">
-        **Install required packages:** <code>npm install recharts lucide-react framer-motion</code>
-      </p>
     </div>
   );
 }

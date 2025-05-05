@@ -6,6 +6,7 @@ import { __dirname } from "../app.js";
 import ProductVariant from "../Models/ProductVariantMd.js";
 import User from "../Models/UserMd.js";
 import Rate from "../Models/RateMd.js";
+import jwt from 'jsonwebtoken'
 export const create = catchAsync(async (req, res, next) => {
   const product = await Product.create(req.body);
   const rate=await Rate.create({productId:product._id})

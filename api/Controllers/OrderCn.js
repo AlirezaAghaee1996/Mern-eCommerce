@@ -3,6 +3,7 @@ import Cart from "../Models/CartMd.js";
 import Discount from "../Models/DiscountCodeMd.js";
 import Order from "../Models/OrderMd.js";
 import ProductVariant from "../Models/ProductVariantMd.js";
+import User from '../Models/UserMd.js'
 import {
   createPayment,
   verifyPayment,
@@ -123,123 +124,117 @@ export const createOrder = catchAsync(async (req, res, next) => {
 
 
 export const getOrder = catchAsync(async (req, res, next) => {
-  const orderId = mongoose.Types.ObjectId(req.params.id);
-  const userId  = mongoose.Types.ObjectId(req.userId);
+  const orderId = req.params.id;
+  const userId = req.userId;
 
   const [order] = await Order.aggregate([
-    { $match: { _id: orderId, userId } },
-
-    { 
-      $lookup: {
-        from: 'orders',            
-        localField: '_id',
-        foreignField: '_id',
-        as: 'doc'
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(orderId),
+        userId: new mongoose.Types.ObjectId(userId)
       }
     },
-    { $unwind: '$doc' },
-    { $replaceRoot: { newRoot: '$doc' } },
-
-  
-    { $unwind: '$items' },
-
- 
+    // Lookup برای محصولات
     {
       $lookup: {
-        from: 'products',
-        localField: 'items.ProductId',
-        foreignField: '_id',
-        as: 'items.product'
+        from: "products",
+        localField: "items.productId",
+        foreignField: "_id",
+        as: "productDetails"
       }
     },
-    { $unwind: '$items.product' },
-
+    // Lookup برای واریانت‌ها
     {
       $lookup: {
-        from: 'productvariants',
-        localField: 'items.ProductVariantId',
-        foreignField: '_id',
-        as: 'items.variant'
+        from: "productvariants",
+        localField: "items.productVariantId",
+        foreignField: "_id",
+        as: "variantDetails"
       }
     },
-    { $unwind: '$items.variant' },
-
+    // Lookup برای دسته‌بندی‌ها
     {
       $lookup: {
-        from: 'categories',
-        localField: 'items.categoryId',
-        foreignField: '_id',
-        as: 'items.category'
+        from: "categories",
+        localField: "items.categoryId",
+        foreignField: "_id",
+        as: "categoryDetails"
       }
     },
-    { $unwind: '$items.category' },
-
-    {
-      $group: {
-        _id: '$_id',
-        totalPrice:             { $first: '$totalPrice' },
-        totalPriceAfterDiscount:{ $first: '$totalPriceAfterDiscount' },
-        discountId:             { $first: '$discountId' },
-        userId:                 { $first: '$userId' },
-        addressId:              { $first: '$addressId' },
-        status:                 { $first: '$status' },
-        authority:              { $first: '$authority' },
-        refId:                  { $first: '$refId' },
-        createdAt:              { $first: '$createdAt' },
-        updatedAt:              { $first: '$updatedAt' },
-        items: { $push: {
-          quantity:     '$items.quantity',
-          finalPrice:   '$items.finalPrice',
-          ProductId:    '$items.product._id',
-          product:      '$items.product',
-          ProductVariantId:'$items.variant._id',
-          variant:      '$items.variant',
-          categoryId:   '$items.category._id',
-          category:     '$items.category'
-        } }
-      }
-    },
-
+    // Lookup برای کاربر (userId)
     {
       $lookup: {
-        from: 'users',
-        localField: 'userId',
-        foreignField: '_id',
-        as: 'user'
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "userDetails"
       }
     },
-    { $unwind: '$user' },
-
+    // Lookup برای آدرس (addressId)
     {
       $lookup: {
-        from: 'addresses',
-        localField: 'addressId',
-        foreignField: '_id',
-        as: 'address'
+        from: "addresses",
+        localField: "addressId",
+        foreignField: "_id",
+        as: "addressDetails"
       }
     },
-    { $unwind: '$address' },
-
+    {
+      $addFields: {
+        items: {
+          $map: {
+            input: "$items",
+            as: "item",
+            in: {
+              $mergeObjects: [
+                "$$item",
+                {
+                  product: {
+                    $arrayElemAt: [
+                      "$productDetails",
+                      {
+                        $indexOfArray: ["$productDetails._id", "$$item.productId"]
+                      }
+                    ]
+                  },
+                  productVariant: {
+                    $arrayElemAt: [
+                      "$variantDetails",
+                      {
+                        $indexOfArray: ["$variantDetails._id", "$$item.productVariantId"]
+                      }
+                    ]
+                  },
+                  category: {
+                    $arrayElemAt: [
+                      "$categoryDetails",
+                      {
+                        $indexOfArray: ["$categoryDetails._id", "$$item.categoryId"]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        // اضافه کردن اطلاعات کاربر و آدرس
+        user: { $arrayElemAt: ["$userDetails", 0] },
+        address: { $arrayElemAt: ["$addressDetails", 0] }
+      }
+    },
     {
       $project: {
-        _id: 1,
-        totalPrice: 1,
-        totalPriceAfterDiscount: 1,
-        discountId: 1,
-        status: 1,
-        authority: 1,
-        refId: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        items: 1,
-        user: {
-          _id: '$user._id',
-          fullname: '$user.fullname',
-          username: '$user.username',
-          phoneNumber: '$user.phoneNumber',
-          role: '$user.role'
-        },
-        address: 1
+        productDetails: 0,
+        variantDetails: 0,
+        categoryDetails: 0,
+        userDetails: 0,
+        addressDetails: 0,
+        // مخفی کردن فیلدهای حساس کاربر
+        "user.password": 0,
+        "user.__v": 0,
+        "user.createdAt": 0,
+        "user.updatedAt": 0
       }
     }
   ]);
@@ -248,8 +243,9 @@ export const getOrder = catchAsync(async (req, res, next) => {
     return next(new HandleERROR('Order not found or unauthorized', 404));
   }
 
-  res.status(200).json({ success: true, data: order });
+  return res.status(200).json({ success: true, data: order });
 });
+
 
 
 export const getAll = catchAsync(async (req, res, next) => {
@@ -262,9 +258,10 @@ export const getAll = catchAsync(async (req, res, next) => {
     .filter()
     .sort()
     .paginate()
-    .populate('userId addressId')
+    .populate()
     .limitFields();
   const data = await features.execute();
+  console.log(data)
   return res.status(200).json(data);
 });
 export const zarinpalCallback = catchAsync(async (req, res, next) => {

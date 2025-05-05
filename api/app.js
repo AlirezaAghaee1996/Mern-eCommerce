@@ -23,6 +23,7 @@ import { setupSwagger } from "./swagger/swagger.js";
 import orderRouter from "./Routes/Order.js";
 import rateRouter from "./Routes/Rate.js";
 import reportRouter from "./Routes/Report.js";
+import { isAdmin } from "./Middlewares/isAdmin.js";
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
@@ -51,7 +52,7 @@ app.use('/api/rate', rateRouter);
 app.use('/api/report', reportRouter);
 app.use('/api/cart', isLogin, cartRouter);
 app.use('/api/search', searchRouter);
-app.use('/api/upload', uploadRouter);
+app.use('/api/upload',isAdmin, uploadRouter);
 
 app.use("*", (req, res, next) => {
   next(new HandleERROR("Route not Found", 404));

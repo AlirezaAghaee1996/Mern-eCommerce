@@ -16,7 +16,8 @@ import {
   FiCodesandbox,
   FiCodepen,
   FiBox,FiPercent,
-  FiMessageSquare
+  FiMessageSquare,
+  FiShoppingCart
 } from "react-icons/fi";
 
 const Layout = () => {

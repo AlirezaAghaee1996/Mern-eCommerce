@@ -206,6 +206,7 @@ export default class ApiFeatures {
   }
 
   #handleError(error) {
+    console.log(error)
     console.error(`[API Features Error] ${error.message}`);
     throw new Error("Request processing failed due to security constraints");
   }

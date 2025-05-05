@@ -54,10 +54,11 @@ const UpdateProduct = () => {
           method: "GET",
           headers: { authorization: `Bearer ${token}` },
         });
+        console.log(response)
         if (response.success) {
-          setInitialData(response.data);
-          setImages(response.data.imagesUrl || []);
-          setInformation(response.data.information || []);
+          setInitialData(response.data?.product);
+          setImages(response.data?.product.imagesUrl || []);
+          setInformation(response.data?.product.information || []);
         } else {
           notify("Product not found!", "error");
           navigate("/product");

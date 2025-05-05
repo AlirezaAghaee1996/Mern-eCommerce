@@ -37,6 +37,9 @@ import CreateDiscountCode from "../Pages/DiscountCode/Create";
 import Comments from "../Pages/Comments";
 import GetAllComments from "../Pages/Comments/GetAll";
 import Reply from "../Pages/Comments/Reply";
+import Order from "../Pages/Order";
+import GetAllOrders from "../Pages/Order/GetAll";
+import GetOneOrder from "../Pages/Order/GetOne";
 const checkAuth = () => {
   const state = store.getState();
   const token = state?.auth?.token;
